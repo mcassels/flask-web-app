@@ -3,12 +3,13 @@ from operator import attrgetter
 import time
 from threading import Thread
 from random import random
+import re
 
 
 # ========================================================
 # Contact Model
 # ========================================================
-PAGE_SIZE = 100
+PAGE_SIZE = 10
 
 class Contact:
     # mock contacts database
@@ -37,6 +38,9 @@ class Contact:
         existing_contact = next(filter(lambda c: c.id != self.id and c.email == self.email, Contact.db.values()), None)
         if existing_contact:
             self.errors['email'] = "Email Must Be Unique"
+        email_chars = re.compile('^[a-z@.]+$')
+        if not re.fullmatch(email_chars, self.email):
+            self.errors['email'] = "Email contains invalid characters"
         return len(self.errors) == 0
 
     def save(self):

@@ -14,11 +14,18 @@ def index():
 @app.route("/contacts")
 def contacts():
     search = request.args.get("q")
+    p = request.args.get("page", 1)
+    page = None
+    if p is not None:
+      page = int(p)
     if search is not None:
-      contacts_set = Contact.serach(search)
+      contacts_set = Contact.search(search)
+      if request.headers.get("HX-Trigger") == "search":
+        print("was search. Contacts set:", contacts_set)
+        return render_template("rows.html", contacts=contacts_set)
     else:
-      contacts_set = Contact.all()
-    return render_template("index.html", contacts=contacts_set)
+      contacts_set = Contact.all(page)
+    return render_template("index.html", contacts=contacts_set, page=page, contacts_length=len(contacts_set))
 
 @app.route("/contacts/new", methods=["GET"])
 def new_contact():
@@ -57,9 +64,16 @@ def contact_edit_post(contact_id):
     else:
         return render_template("edit.html", contact=contact)
 
-@app.route("/contacts/<contact_id>/delete", methods=["POST"])
+@app.route("/contacts/<contact_id>", methods=["DELETE"])
 def contact_delete(contact_id):
     contact = Contact.find(contact_id)
     contact.delete()
     flash("Deleted Contact!")
-    return redirect("/contacts")
+    return redirect("/contacts", 303)
+
+@app.route("/contacts/<contact_id>/email", methods=["GET"])
+def contact_email_get(contact_id=0):
+    c = Contact.find(contact_id)
+    c.email = request.args.get('email')
+    c.validate()
+    return c.errors.get('email') or ""

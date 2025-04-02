@@ -3,7 +3,11 @@
 <form action ="/contacts" method="get" class="tool-bar">
   <label for="search" Search Term></label>
   <input id="search" type="search" name="q"
-      value="{{ request.args.get('q') or '' }}" />
+      value="{{ request.args.get('q') or '' }}"
+      hx-get="/contacts"
+      hx-trigger="search, keyup delay:200ms changed"
+      hx-target="tbody"
+      />
   <input type="submit" value="Search" />
 </form>
 <table>
@@ -13,20 +17,24 @@
     </tr>
   </thead>
   <tbody>
-    {% for contact in contacts %}
-      <tr>
-        <td>{{ contact.first }}</td>
-        <td>{{ contact.last }}</td>
-        <td>{{ contact.phone }}</td>
-        <td>{{ contact.email }}</td>
-        <td>
-          <a href="/contacts/{{ contact.id }}/edit">Edit</a>
-          <a href="/contacts/{{ contact.id }}">View</a>
-        </td>
-      </tr>
-    {% endfor %}
+    {% include 'rows.html' %}
+    <!-- <tr>
+      <td colspan="5" style="text-align: center">
+        <span hx-trigger="revealed" hx-target="closest tr" hx-select="tbody > tr" hx-swap="outerHTML" hx-get="/contacts?page={{ page + 1 }}">
+          Loading more...
+        </span>
+      </td>
+    </tr> -->
   </tbody>
 </table>
+<div>
+  <span style="float: right">
+    {% if page > 1 %}
+      <a href="/contacts?page={{ page - 1 }}">Previous</a>
+    {% endif %}
+    <a href="/contacts?page={{ page + 1 }}">Next</a>
+  </span>
+</div>
 <p>
   <a href="/contacts/new">Add Contact</a>
 </p>
