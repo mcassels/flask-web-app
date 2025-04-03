@@ -25,7 +25,12 @@ def contacts():
         return render_template("rows.html", contacts=contacts_set)
     else:
       contacts_set = Contact.all(page)
-    return render_template("index.html", contacts=contacts_set, page=page, contacts_length=len(contacts_set))
+    return render_template("index.html", contacts=contacts_set, page=page)
+
+@app.route("/contacts/count")
+def contacts_count():
+    count = Contact.count()
+    return f"({count} total Contacts)"
 
 @app.route("/contacts/new", methods=["GET"])
 def new_contact():
@@ -68,8 +73,21 @@ def contact_edit_post(contact_id):
 def contact_delete(contact_id):
     contact = Contact.find(contact_id)
     contact.delete()
-    flash("Deleted Contact!")
-    return redirect("/contacts", 303)
+    if request.headers.get("HX-Trigger") == "delete-btn":
+        flash("Deleted Contact!")
+        return redirect("/contacts", 303) # 303 makes the redirected request use GET, instead of the method used for this endpoint (DELETE)
+    return ""
+
+@app.route("/contacts", methods=["DELETE"])
+def contact_delete_multiple():
+    contact_ids = request.args.getlist("selected_contact_ids")
+    for contact_id in contact_ids:
+        contact = Contact.find(contact_id)
+        contact.delete()
+    flash("Deleted Contacts!")
+    contacts_set = Contact.all()
+    # don't use redirect here because the there's no need for the url to update
+    return render_template("index.html", contacts=contacts_set, page=1)
 
 @app.route("/contacts/<contact_id>/email", methods=["GET"])
 def contact_email_get(contact_id=0):
