@@ -1,5 +1,6 @@
 {% extends 'layout.html' %}
 {% block content %}
+ {% include 'archive_ui.html' %}
 <form action="/contacts" method="get" class="tool-bar">
   <label for="search" Search Term></label>
   <input id="search" type="search" name="q" value="{{ request.args.get('q') or '' }}" hx-get="/contacts"
@@ -20,13 +21,6 @@
     </thead>
     <tbody>
       {% include 'rows.html' %}
-      <!-- <tr>
-      <td colspan="5" style="text-align: center">
-        <span hx-trigger="revealed" hx-target="closest tr" hx-select="tbody > tr" hx-swap="outerHTML" hx-get="/contacts?page={{ page + 1 }}">
-          Loading more...
-        </span>
-      </td>
-    </tr> -->
     </tbody>
   </table>
   <button hx-delete="/contacts" hx-target="body" hx-confirm="Are you sure you want to delete these contacts?">
